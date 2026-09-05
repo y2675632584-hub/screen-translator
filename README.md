@@ -4,7 +4,7 @@
 
 按一下快捷键，把当前屏幕上的外语原位覆盖成中文；再按一下，立即恢复原画面。软件常驻菜单栏或系统托盘，译文覆盖层允许鼠标点击穿透。
 
-[从 Releases 下载最新版](../../releases/latest)
+[从 Releases 下载最新版](https://github.com/y2675632584-hub/screen-translator/releases/latest)
 
 ## 支持平台
 
