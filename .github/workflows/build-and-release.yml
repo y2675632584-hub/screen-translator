@@ -25,29 +25,9 @@ jobs:
           name: ScreenTranslator-macOS-arm64
           path: ScreenTranslator-macOS-arm64.zip
 
-  windows:
-    runs-on: windows-2025
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 8.0.x
-      - name: Build Windows portable app
-        shell: pwsh
-        run: |
-          dotnet publish windows/ScreenTranslator.Win/ScreenTranslator.Win.csproj -c Release -r win-x64 --self-contained true -o publish/windows-x64
-          Copy-Item windows/README.md publish/windows-x64/README.md
-          Copy-Item LICENSE publish/windows-x64/LICENSE.txt
-          Copy-Item PRIVACY.md publish/windows-x64/PRIVACY.md
-          Compress-Archive -Path publish/windows-x64/* -DestinationPath ScreenTranslator-Windows-x64.zip
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ScreenTranslator-Windows-x64
-          path: ScreenTranslator-Windows-x64.zip
-
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [macos, windows]
+    needs: [macos]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
