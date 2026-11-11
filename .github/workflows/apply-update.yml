@@ -1,0 +1,24 @@
+name: Apply prepared update
+on:
+  push:
+    branches: [update-laoye-v1.4.0]
+    paths: ['.github/workflows/apply-update.yml']
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: update-laoye-v1.4.0
+      - name: Apply reviewed project files
+        run: |
+          set -euo pipefail
+          unzip -o laoye-update-v1.4.0.zip
+          git rm laoye-update-v1.4.0.zip .github/workflows/apply-update.yml
+          git add .github/workflows/build-and-release.yml PRIVACY.md README.md Resources/Info.plist Sources/ScreenTranslator/AppModel.swift Sources/ScreenTranslator/ScreenTranslatorApp.swift Sources/ScreenTranslator/DockClick.swift Sources/ScreenTranslator/MissionSwipe.swift Sources/ScreenTranslator/MissionWindowMatch.swift Tests/ScreenTranslatorTests/MissionWindowMatchTests.swift scripts/build-app.sh RELEASE-v1.4.0.md
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Update Lao Ye toolkit to v1.4.0'
+          git push origin HEAD:update-laoye-v1.4.0
