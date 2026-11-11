@@ -19,7 +19,7 @@ jobs:
       - name: Build macOS app
         run: bash scripts/build-app.sh
       - name: Package macOS app
-        run: ditto -c -k --keepParent "dist/屏幕译.app" ScreenTranslator-macOS-arm64.zip
+        run: ditto -c -k --keepParent "dist/老叶奇妙工具.app" ScreenTranslator-macOS-arm64.zip
       - uses: actions/upload-artifact@v4
         with:
           name: ScreenTranslator-macOS-arm64
@@ -41,5 +41,5 @@ jobs:
           if gh release view "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
             gh release upload "${GITHUB_REF_NAME}" artifacts/* --repo "${GITHUB_REPOSITORY}" --clobber
           else
-            gh release create "${GITHUB_REF_NAME}" artifacts/* --repo "${GITHUB_REPOSITORY}" --generate-notes --title "屏幕译 ${GITHUB_REF_NAME}"
+            gh release create "${GITHUB_REF_NAME}" artifacts/* --repo "${GITHUB_REPOSITORY}" --generate-notes --title "老叶奇妙工具 ${GITHUB_REF_NAME}"
           fi

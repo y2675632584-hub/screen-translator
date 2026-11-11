@@ -142,7 +142,7 @@ final class AppModel: ObservableObject {
         if CGRequestScreenCaptureAccess() { hasPermission = true }
         else {
             NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!)
-            status = "请在系统设置中允许「屏幕译」录制屏幕，必要时退出后重新打开"
+            status = "请在系统设置中允许「老叶奇妙工具」录制屏幕，必要时退出后重新打开"
         }
     }
 
