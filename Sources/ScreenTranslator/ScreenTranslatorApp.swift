@@ -27,10 +27,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        DockClick.shared.refresh()
+        MissionSwipe.shared.configure()
         NSApp.applicationIconImage = AppArtwork.icon
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        item.button?.image = NSImage(systemSymbolName: "character.bubble", accessibilityDescription: "屏幕译")
-        item.button?.toolTip = "屏幕译 · \(model.shortcut.label) 显示或隐藏中文"
+        item.button?.image = NSImage(systemSymbolName: "character.bubble", accessibilityDescription: "老叶奇妙工具")
+        item.button?.toolTip = "老叶奇妙工具 · \(model.shortcut.label) 显示或隐藏中文"
         statusItem = item
         model.openSettings = { [weak self] in self?.showSettings() }
         model.objectWillChange.sink { [weak self] _ in
@@ -45,7 +47,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func updateMenu() {
         let menu = NSMenu()
-        let title = NSMenuItem(title: "屏幕译", action: nil, keyEquivalent: "")
+        let title = NSMenuItem(title: "老叶奇妙工具", action: nil, keyEquivalent: "")
         menu.addItem(title)
         let state = NSMenuItem(title: model.status, action: nil, keyEquivalent: "")
         menu.addItem(state)
@@ -70,11 +72,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settings.target = self
         menu.addItem(settings)
         menu.addItem(.separator())
-        let quit = NSMenuItem(title: "退出屏幕译", action: #selector(quitApp), keyEquivalent: "q")
+        let quit = NSMenuItem(title: "退出老叶奇妙工具", action: #selector(quitApp), keyEquivalent: "q")
         quit.target = self
         menu.addItem(quit)
         statusItem?.menu = menu
-        statusItem?.button?.image = NSImage(systemSymbolName: model.isActive ? "character.bubble.fill" : "character.bubble", accessibilityDescription: "屏幕译")
+        statusItem?.button?.image = NSImage(systemSymbolName: model.isActive ? "character.bubble.fill" : "character.bubble", accessibilityDescription: "老叶奇妙工具")
         statusItem?.button?.toolTip = model.status
     }
 
@@ -87,9 +89,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc func showSettings() {
         if settingsWindow == nil {
-            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 600, height: 730),
+            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 600, height: 850),
                                   styleMask: [.titled, .closable, .miniaturizable], backing: .buffered, defer: false)
-            window.title = "屏幕译"
+            window.title = "老叶奇妙工具"
             window.isReleasedWhenClosed = false
             window.contentView = NSHostingView(rootView: SettingsView(model: model))
             window.center()
@@ -111,6 +113,8 @@ import Combine
 
 struct SettingsView: View {
     @ObservedObject var model: AppModel
+    @ObservedObject private var dock = DockClick.shared
+    @ObservedObject private var mission = MissionSwipe.shared
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -118,9 +122,9 @@ struct SettingsView: View {
             HStack(spacing: 14) {
                 Image(nsImage: AppArtwork.icon)
                     .resizable().scaledToFit().frame(width: 52, height: 52)
-                    .accessibilityLabel("屏幕译图标")
+                    .accessibilityLabel("老叶奇妙工具图标")
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("屏幕译").font(.system(size: 28, weight: .bold))
+                    Text("老叶奇妙工具").font(.system(size: 28, weight: .bold))
                     Text("按一下，全屏显示译文。再按一下，回到原文。")
                         .font(.subheadline).foregroundStyle(.secondary)
                 }
@@ -128,6 +132,20 @@ struct SettingsView: View {
                 Text(model.shortcut.label).font(.system(.body, design: .monospaced).bold())
                     .lineLimit(1).minimumScaleFactor(0.6).frame(maxWidth: 150)
                     .padding(10).background(.quaternary, in: RoundedRectangle(cornerRadius: 9))
+            }
+            GroupBox("Mac 增强") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Toggle("点击 Dock 中的当前应用，再点一次最小化", isOn: $dock.enabled)
+                    Toggle("调度中心：双指滑动或点击 × 关闭窗口", isOn: $mission.enabled)
+                    HStack {
+                        Text(dock.trusted ? "辅助功能已授权" : "需要辅助功能权限；全屏窗口不最小化。").font(.caption)
+                        Spacer()
+                        Button(dock.trusted ? "重新检查" : "授权辅助功能") {
+                            if dock.trusted { dock.refresh() } else { dock.authorize() }
+                            mission.configure()
+                        }
+                    }
+                }.padding(8)
             }
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
@@ -237,7 +255,7 @@ struct SettingsView: View {
                     .buttonStyle(.borderedProminent).tint(.teal).disabled(model.isRecordingShortcut)
             }
         }
-        .padding(26).frame(width: 600, height: 730)
+        .padding(26).frame(width: 600, height: 850)
         .translationTask(model.downloadConfiguration) { session in
             do {
                 try await session.prepareTranslation()
@@ -245,6 +263,8 @@ struct SettingsView: View {
             } catch { await model.finishPreparation(error: error) }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            dock.refresh()
+            mission.configure()
             model.refreshPermission()
             Task { await model.refreshLanguageStatus() }
         }
